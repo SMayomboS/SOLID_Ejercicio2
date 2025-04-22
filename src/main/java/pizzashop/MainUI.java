@@ -140,11 +140,13 @@ public class MainUI extends JFrame {
         JPanel panel = new JPanel(new GridLayout(0, 1));
         JButton selectPizzaButton = new JButton("Seleccionar Pizza");
         JButton viewCartButton = new JButton("Ver Carrito");
+        JButton cancelButton = new JButton("Cancelar Pedido");
         JButton logoutButton = new JButton("Cerrar Sesión");
 
         panel.add(selectPizzaButton);
         panel.add(viewCartButton);
         panel.add(logoutButton);
+        panel.add(cancelButton);
 
         selectPizzaButton.addActionListener(e -> cardLayout.show(mainPanel, "pizzaSelection"));
         viewCartButton.addActionListener(e -> cardLayout.show(mainPanel, "cart"));
@@ -214,6 +216,7 @@ public class MainUI extends JFrame {
         JButton payButton = new JButton("Finalizar y Pagar");
         JButton backButton = new JButton("Volver al Menú");
 
+
         cartArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(cartArea);
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -263,7 +266,8 @@ public class MainUI extends JFrame {
         DataBaseManager dbManager = new DataBaseManager();
         PaymentProcessor paymentProcessor = new PaymentProcessor();
         Authenticator authenticator = new Authenticator(dbManager);
-        OrderManager orderManager = new OrderManager(dbManager, paymentProcessor);
+        CartManager cartManager = new CartManager(); // Crear instancia de CartManager
+        OrderManager orderManager = new OrderManager(dbManager, paymentProcessor, cartManager); // Pasar CartManager
 
         SwingUtilities.invokeLater(() -> {
             MainUI ui = new MainUI(authenticator, orderManager);
