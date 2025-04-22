@@ -28,27 +28,6 @@ Maven como sistema de construcción
 
 JUnit 5 para pruebas unitarias
 
-🔎 Estructura del Proyecto
-
-PizzeriaOnline/
-├── src/
-│   ├── main/java/pizzashop/
-│   │   ├── MainUI.java
-│   │   ├── Authenticator.java
-│   │   ├── DataBaseManager.java
-│   │   ├── OrderManager.java
-│   │   ├── PaymentProcessor.java
-│   │   ├── CartManager.java
-│   │   ├── Pizza.java
-│   │   ├── Pedido.java
-│   ├── test/java/pizzashop/
-│       ├── AuthenticatorTest.java
-│       ├── DataBaseManagerTest.java
-│       ├── OrderManagerTest.java
-│       ├── PaymentProcessorTest.java
-│       ├── CartManagerTest.java
-├── pom.xml
-└── README.md
 
 🔬 Pruebas Unitarias
 
