@@ -171,7 +171,7 @@ public class MainUI extends JFrame {
         JButton registerButton = new JButton("Registrarse");
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        panel.add(new JLabel("Bienvenido a la Pizzería en Línea"));
+        panel.add(new JLabel("Bienvenido a la Pizzería Fuegos"));
         panel.add(loginButton);
         panel.add(registerButton);
 
