@@ -39,4 +39,7 @@ public class DataBaseManager {
     public Pedido getPedido(int pedidoId) {
         return pedidos.get(pedidoId);
     }
+
+    public void saveOrder(String pedidoDePrueba) {
+    }
 }
