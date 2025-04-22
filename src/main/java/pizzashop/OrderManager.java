@@ -1,9 +1,13 @@
 package pizzashop;
 
+import java.util.List;
+
 public class OrderManager {
     private final DataBaseManager dbManager;
     private final PaymentProcessor paymentProcessor;
     private final CartManager cartManager;
+
+    private int currentPedidoId = -1;
 
     public OrderManager(DataBaseManager dbManager, PaymentProcessor paymentProcessor, CartManager cartManager) {
         this.dbManager = dbManager;
@@ -11,18 +15,20 @@ public class OrderManager {
         this.cartManager = cartManager;
     }
 
-    public void createOrder(String orderDetails, double amount) {
-        if (paymentProcessor.processPayment(amount)) {
-            dbManager.saveOrder(orderDetails);
+    public void createOrder(List<Pizza> pizzas, double total) {
+        if (paymentProcessor.processPayment(total)) {
+            int pedidoId = dbManager.generatePedidoId();
+            Pedido pedido = new Pedido(pedidoId, pizzas, total);
+            dbManager.saveOrder(pedido);
+            currentPedidoId = pedidoId;
         }
     }
 
-    public void cancelOrder(int orderId) {
-        if (dbManager != null) {
-            dbManager.deleteOrder(orderId);
-            cartManager.vaciarCarrito(); // Vacía el carrito al cancelar el pedido
-        } else {
-            throw new IllegalStateException("DataBaseManager no está inicializado.");
+    public void cancelOrder() {
+        if (currentPedidoId != -1) {
+            dbManager.deleteOrder(currentPedidoId);
+            cartManager.vaciarCarrito();
+            currentPedidoId = -1;
         }
     }
 }

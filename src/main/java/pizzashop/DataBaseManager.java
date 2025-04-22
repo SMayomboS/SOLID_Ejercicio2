@@ -3,24 +3,13 @@ package pizzashop;
 import java.util.HashMap;
 import java.util.Map;
 
-class DataBaseManager {
+public class DataBaseManager {
     private final Map<String, String> users = new HashMap<>();
-
-    public void connect() {
-        System.out.println("Conectando a la base de datos...");
-    }
-
-    public void saveOrder(String orderDetails) {
-        System.out.println("Guardando pedido: " + orderDetails);
-    }
-
-    public void deleteOrder(int orderId) {
-        System.out.println("Eliminando pedido: " + orderId);
-    }
+    private final Map<Integer, Pedido> pedidos = new HashMap<>();
+    private int nextPedidoId = 1;
 
     public void saveUser(String username, String password) {
         users.put(username, password);
-        System.out.println("Usuario guardado: " + username);
     }
 
     public boolean userExists(String username) {
@@ -29,5 +18,25 @@ class DataBaseManager {
 
     public String getPassword(String username) {
         return users.get(username);
+    }
+
+    public int generatePedidoId() {
+        return nextPedidoId++;
+    }
+
+    public void saveOrder(Pedido pedido) {
+        pedidos.put(pedido.getId(), pedido);
+        pedido.pagar(); // Se marca como pagado al guardar
+    }
+
+    public void deleteOrder(int pedidoId) {
+        Pedido pedido = pedidos.get(pedidoId);
+        if (pedido != null) {
+            pedido.cancelar();
+        }
+    }
+
+    public Pedido getPedido(int pedidoId) {
+        return pedidos.get(pedidoId);
     }
 }
