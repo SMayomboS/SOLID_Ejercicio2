@@ -2,10 +2,8 @@ package pizzashop;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 public class MainUI extends JFrame {
     private final Authenticator authenticator;
@@ -21,10 +19,10 @@ public class MainUI extends JFrame {
     private JTextField registerUsernameField;
     private JPasswordField registerPasswordField;
 
-    public MainUI(Authenticator authenticator, OrderManager orderManager) {
+    public MainUI(Authenticator authenticator, OrderManager orderManager, CartManager cartManager) {
         this.authenticator = authenticator;
         this.orderManager = orderManager;
-        this.cartManager = new CartManager();
+        this.cartManager = cartManager;
 
         catalogoPizzas = crearCatalogo();
 
@@ -49,11 +47,31 @@ public class MainUI extends JFrame {
 
     private Map<String, Map<String, Double>> crearCatalogo() {
         Map<String, Map<String, Double>> catalogo = new HashMap<>();
-        catalogo.put("Margarita", Map.of("Pequeña", 5.00, "Mediana", 7.00, "Grande", 9.00));
-        catalogo.put("Pepperoni", Map.of("Pequeña", 6.00, "Mediana", 8.50, "Grande", 11.00));
-        catalogo.put("4 Quesos", Map.of("Pequeña", 6.50, "Mediana", 9.00, "Grande", 12.00));
-        catalogo.put("Vegetariana", Map.of("Pequeña", 5.50, "Mediana", 8.00, "Grande", 10.50));
+        catalogo.put("Margarita", Map.of("Pequeña", 5.0, "Mediana", 7.0, "Grande", 9.0));
+        catalogo.put("Pepperoni", Map.of("Pequeña", 6.0, "Mediana", 8.5, "Grande", 11.0));
+        catalogo.put("4 Quesos", Map.of("Pequeña", 6.5, "Mediana", 9.0, "Grande", 12.0));
         return catalogo;
+    }
+
+    private JPanel createWelcomePanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
+
+        JButton loginButton = new JButton("Iniciar Sesión");
+        JButton registerButton = new JButton("Registrarse");
+
+        loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        panel.add(loginButton);
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(registerButton);
+
+        loginButton.addActionListener(e -> cardLayout.show(mainPanel, "login"));
+        registerButton.addActionListener(e -> cardLayout.show(mainPanel, "register"));
+
+        return panel;
     }
 
     private JPanel createLoginPanel() {
@@ -136,49 +154,55 @@ public class MainUI extends JFrame {
 
         return panel;
     }
+
     private JPanel createMenuPanel() {
-        JPanel panel = new JPanel(new GridLayout(0, 1));
-        JButton selectPizzaButton = new JButton("Seleccionar Pizza");
-        JButton viewCartButton = new JButton("Ver Carrito");
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
+
+        JButton selectPizzaButton = new JButton("Seleccionar Pizzas");
+        JButton viewCartButton = new JButton("Ver Carrito y Pagar");
         JButton cancelButton = new JButton("Cancelar Pedido");
         JButton logoutButton = new JButton("Cerrar Sesión");
 
+        selectPizzaButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        viewCartButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        cancelButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         panel.add(selectPizzaButton);
+        panel.add(Box.createVerticalStrut(20));
         panel.add(viewCartButton);
-        panel.add(logoutButton);
+        panel.add(Box.createVerticalStrut(20));
         panel.add(cancelButton);
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(logoutButton);
 
         selectPizzaButton.addActionListener(e -> cardLayout.show(mainPanel, "pizzaSelection"));
         viewCartButton.addActionListener(e -> cardLayout.show(mainPanel, "cart"));
+
+        cancelButton.addActionListener(e -> {
+            if (!cartManager.getCarrito().isEmpty()) {
+                int confirm = JOptionPane.showConfirmDialog(null, "¿Seguro que quieres cancelar el pedido?", "Cancelar Pedido", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    if (orderManager.hasCurrentOrder()) {
+                        orderManager.cancelOrder();
+                    } else {
+                        cartManager.vaciarCarrito();
+                    }
+                    updateCartArea();
+                    JOptionPane.showMessageDialog(null, "Pedido cancelado y carrito vaciado.");
+                    cardLayout.show(mainPanel, "menu");
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "El carrito ya está vacío.");
+            }
+        });
+
         logoutButton.addActionListener(e -> {
             cartManager.vaciarCarrito();
             cardLayout.show(mainPanel, "welcome");
         });
-
-        return panel;
-    }
-
-    private void clearLoginFields() {
-        loginUsernameField.setText("");
-        loginPasswordField.setText("");
-    }
-
-    private void clearRegisterFields() {
-        registerUsernameField.setText("");
-        registerPasswordField.setText("");
-    }
-    private JPanel createWelcomePanel() {
-        JPanel panel = new JPanel(new GridLayout(0, 1));
-        JButton loginButton = new JButton("Iniciar Sesión");
-        JButton registerButton = new JButton("Registrarse");
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        panel.add(new JLabel("Bienvenido a la Pizzería Fuegos"));
-        panel.add(loginButton);
-        panel.add(registerButton);
-
-        loginButton.addActionListener(e -> cardLayout.show(mainPanel, "login"));
-        registerButton.addActionListener(e -> cardLayout.show(mainPanel, "register"));
 
         return panel;
     }
@@ -200,9 +224,11 @@ public class MainUI extends JFrame {
         addButton.addActionListener(e -> {
             String tipo = (String) tipoBox.getSelectedItem();
             String tamaño = (String) tamañoBox.getSelectedItem();
-            double precio = catalogoPizzas.get(tipo).get(tamaño);
-            cartManager.añadirPizza(new Pizza(tipo, tamaño, precio));
-            JOptionPane.showMessageDialog(null, "Pizza añadida al carrito.");
+            if (catalogoPizzas.containsKey(tipo) && catalogoPizzas.get(tipo).containsKey(tamaño)) {
+                double precio = catalogoPizzas.get(tipo).get(tamaño);
+                cartManager.añadirPizza(new Pizza(tipo, tamaño, precio));
+                JOptionPane.showMessageDialog(null, "Pizza añadida al carrito.");
+            }
         });
 
         backButton.addActionListener(e -> cardLayout.show(mainPanel, "menu"));
@@ -216,7 +242,6 @@ public class MainUI extends JFrame {
         JButton payButton = new JButton("Finalizar y Pagar");
         JButton backButton = new JButton("Volver al Menú");
 
-
         cartArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(cartArea);
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -227,7 +252,7 @@ public class MainUI extends JFrame {
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
         payButton.addActionListener(e -> {
-            List<Pizza> carrito = cartManager.getCarrito();
+            List<Pizza> carrito = new ArrayList<>(cartManager.getCarrito());
             if (carrito.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "El carrito está vacío.");
             } else {
@@ -235,9 +260,7 @@ public class MainUI extends JFrame {
                 String metodo = (String) JOptionPane.showInputDialog(null, "Selecciona método de pago:", "Pago", JOptionPane.QUESTION_MESSAGE, null, opciones, opciones[0]);
                 double total = cartManager.calcularTotal();
                 if (metodo != null) {
-                    if (orderManager != null) {
-                        orderManager.createOrder("Pedido: " + carrito.size() + " pizzas", total);
-                    }
+                    Pedido pedido = orderManager.createOrder(carrito, total);
                     JOptionPane.showMessageDialog(null, "Pago realizado con éxito por " + total + "€ mediante " + metodo);
                     cartManager.vaciarCarrito();
                     cardLayout.show(mainPanel, "menu");
@@ -262,15 +285,49 @@ public class MainUI extends JFrame {
         return panel;
     }
 
+    private void clearLoginFields() {
+        loginUsernameField.setText("");
+        loginPasswordField.setText("");
+    }
+
+    private void clearRegisterFields() {
+        registerUsernameField.setText("");
+        registerPasswordField.setText("");
+    }
+
+    private void updateCartArea() {
+        JTextArea cartArea = findCartArea(mainPanel);
+        if (cartArea != null) {
+            StringBuilder builder = new StringBuilder();
+            for (Pizza pizza : cartManager.getCarrito()) {
+                builder.append(pizza).append("\n");
+            }
+            builder.append("Total: ").append(cartManager.calcularTotal()).append("€");
+            cartArea.setText(builder.toString());
+        }
+    }
+
+    private JTextArea findCartArea(Container container) {
+        for (Component comp : container.getComponents()) {
+            if (comp instanceof JTextArea) {
+                return (JTextArea) comp;
+            } else if (comp instanceof Container) {
+                JTextArea found = findCartArea((Container) comp);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
     public static void main(String[] args) {
         DataBaseManager dbManager = new DataBaseManager();
         PaymentProcessor paymentProcessor = new PaymentProcessor();
+        CartManager cartManager = new CartManager();
         Authenticator authenticator = new Authenticator(dbManager);
-        CartManager cartManager = new CartManager(); // Crear instancia de CartManager
-        OrderManager orderManager = new OrderManager(dbManager, paymentProcessor, cartManager); // Pasar CartManager
+        OrderManager orderManager = new OrderManager(dbManager, paymentProcessor, cartManager);
 
         SwingUtilities.invokeLater(() -> {
-            MainUI ui = new MainUI(authenticator, orderManager);
+            MainUI ui = new MainUI(authenticator, orderManager, cartManager);
             ui.setVisible(true);
         });
     }

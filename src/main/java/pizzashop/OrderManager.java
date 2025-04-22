@@ -15,13 +15,14 @@ public class OrderManager {
         this.cartManager = cartManager;
     }
 
-    public void createOrder(List<Pizza> pizzas, double total) {
+    public Pedido createOrder(List<Pizza> pizzas, double total) {
         if (paymentProcessor.processPayment(total)) {
             int pedidoId = dbManager.generatePedidoId();
             Pedido pedido = new Pedido(pedidoId, pizzas, total);
             dbManager.saveOrder(pedido);
             currentPedidoId = pedidoId;
         }
+        return null;
     }
 
     public void cancelOrder() {
@@ -30,5 +31,9 @@ public class OrderManager {
             cartManager.vaciarCarrito();
             currentPedidoId = -1;
         }
+    }
+
+    public boolean hasCurrentOrder() {
+        return currentPedidoId != -1;
     }
 }
