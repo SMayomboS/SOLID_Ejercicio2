@@ -224,10 +224,12 @@ public class MainUI extends JFrame {
         addButton.addActionListener(e -> {
             String tipo = (String) tipoBox.getSelectedItem();
             String tamaño = (String) tamañoBox.getSelectedItem();
-            if (catalogoPizzas.containsKey(tipo) && catalogoPizzas.get(tipo).containsKey(tamaño)) {
-                double precio = catalogoPizzas.get(tipo).get(tamaño);
-                cartManager.añadirPizza(new Pizza(tipo, tamaño, precio));
+            try {
+                Pizza pizza = PizzaFactory.createPizza(tipo, tamaño);
+                cartManager.añadirPizza(pizza);
                 JOptionPane.showMessageDialog(null, "Pizza añadida al carrito.");
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(null, ex.getMessage());
             }
         });
 
